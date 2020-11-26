@@ -12,6 +12,7 @@
 #include <osgQt/GraphicsWindowQt>
 
 #include <iostream>
+#include <osgEarth/EarthManipulator>
 
 class ViewerWidget : public QWidget, public osgViewer::CompositeViewer
 {
@@ -23,11 +24,13 @@ public:
         // disable the default setting of viewer.done() by pressing Escape.
         setKeyEventSetsDone(0);
 
-        QWidget* widget1 = addViewWidget( createGraphicsWindow(0,0,100,100), osgDB::readRefNodeFile("cow.osgt") );
-        QWidget* widget2 = addViewWidget( createGraphicsWindow(0,0,100,100), osgDB::readRefNodeFile("glider.osgt") );
-        QWidget* widget3 = addViewWidget( createGraphicsWindow(0,0,100,100), osgDB::readRefNodeFile("axes.osgt") );
-        QWidget* widget4 = addViewWidget( createGraphicsWindow(0,0,100,100), osgDB::readRefNodeFile("fountain.osgt") );
-        QWidget* popupWidget = addViewWidget( createGraphicsWindow(900,100,320,240,"Popup window",true), osgDB::readRefNodeFile("dumptruck.osgt") );
+        auto scene1 = osgDB::readRefNodeFile("cow.osgb") ;
+    auto scene2 = osgDB::readRefNodeFile("boston.earth") ;
+        QWidget* widget1 = addViewWidget( createGraphicsWindow(0,0,100,100), scene1);
+        QWidget* widget2 = addViewWidget( createGraphicsWindow(0,0,100,100), scene1);
+        QWidget* widget3 = addViewWidget( createGraphicsWindow(0,0,100,100), scene2 );
+        QWidget* widget4 = addViewWidget( createGraphicsWindow(0,0,100,100), scene2);
+        QWidget* popupWidget = addViewWidget( createGraphicsWindow(900,100,320,240,"Popup window",true), scene2);
         popupWidget->show();
 
         QGridLayout* grid = new QGridLayout;
@@ -62,7 +65,8 @@ public:
 
         view->setSceneData( scene );
         view->addEventHandler( new osgViewer::StatsHandler );
-        view->setCameraManipulator( new osgGA::MultiTouchTrackballManipulator );
+        auto manip = new osgEarth::EarthManipulator();
+        view->setCameraManipulator( manip );
         gw->setTouchEventsEnabled( true );
         return gw->getGLWidget();
     }
@@ -94,6 +98,8 @@ protected:
     QTimer _timer;
 };
 
+#include <osgEarth/Capabilities>
+
 int main( int argc, char** argv )
 {
     osg::ArgumentParser arguments(&argc, argv);
@@ -116,6 +122,7 @@ int main( int argc, char** argv )
         QApplication::setAttribute(Qt::AA_X11InitThreads);
 #endif
 
+    osgEarth::initialize();
     QApplication app(argc, argv);
     ViewerWidget* viewWidget = new ViewerWidget(0, Qt::Widget, threadingModel);
     viewWidget->setGeometry( 100, 100, 800, 600 );
